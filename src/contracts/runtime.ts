@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { ProjectApi } from './project';
 
 export const runtimeChannel = 'manifold:runtime-status';
 export const runtimeRequestSchema = z.strictObject({
@@ -14,6 +15,6 @@ export const workerReadySchema = z.strictObject({
 });
 
 export type RuntimeResponse = z.infer<typeof runtimeResponseSchema>;
-export interface ManifoldApi {
+export interface ManifoldApi extends ProjectApi {
   getRuntimeStatus(): Promise<RuntimeResponse>;
 }

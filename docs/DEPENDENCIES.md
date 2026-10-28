@@ -1,6 +1,6 @@
 ﻿# Dependency review
 
-Reviewed 2026-10-27 against the successful npm installation log and generated lockfile.
+Historical dependency review from 2026-10-27. Subsequently the user upgraded all Forge packages to 8.0.1 and committed the manifest/lockfile. The successful user-run audit log 2026-10-28T00_36_38_547Z-debug-0.log returned an empty advisory report. The remaining-issues section below describes the superseded Forge 7 tree, not the current installed dependencies.
 
 ## Original findings
 

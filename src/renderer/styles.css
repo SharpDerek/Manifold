@@ -105,3 +105,54 @@ footer > :last-child {
   padding: 4px;
   cursor: pointer;
 }
+.project {
+  align-items: stretch;
+  justify-content: flex-start;
+  text-align: left;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+.project h1 {
+  font-size: 24px;
+  overflow-wrap: anywhere;
+}
+.project h2 {
+  font-size: 18px;
+}
+.policy-controls {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+input {
+  flex: 1;
+  min-width: 0;
+  background: #10151e;
+  border: 1px solid #6f98b5;
+  color: #e8edf5;
+  padding: 12px;
+  border-radius: 6px;
+  font: inherit;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid #ffffff12;
+  overflow-wrap: anywhere;
+}
+.error {
+  color: #ffb9b9;
+}
+section li {
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+button {
+  cursor: pointer;
+}

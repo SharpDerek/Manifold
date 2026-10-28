@@ -1,6 +1,6 @@
 ﻿# Manifold v0.1 implementation specification
 
-Status: M0 dependencies installed and checks passing; desktop startup and final packaging verification pending. Architecture: [DESIGN.md](DESIGN.md).
+Status: M0 complete with user-confirmed startup/build; M1 acquisition implemented with desktop verification pending. Architecture: [DESIGN.md](DESIGN.md).
 
 ## 1. Release outcome
 
@@ -86,20 +86,20 @@ Complete milestones in order. A milestone is complete when its criteria pass and
 
 ### M0 â€” Repository and application skeleton
 
-- [ ] Set up TypeScript strict mode, React, Electron, Vite, packaging, and a committed lockfile.
+- [x] Set up TypeScript strict mode, React, Electron, Vite, packaging, and a committed lockfile.
 - [x] Establish the source boundaries from DESIGN.md and enforce forbidden imports.
-- [ ] Add runtime-validated IPC contracts, isolated preload, sandboxed renderer, and a worker entry point.
+- [x] Add runtime-validated IPC contracts, isolated preload, sandboxed renderer, and a worker entry point.
 - [x] Add format/lint/typecheck/test/build commands and document setup/run instructions.
-- [ ] Launch a desktop window with an empty state and verify production compilation.
+- [x] Launch a desktop window with an empty state and verify production compilation.
 
 Acceptance: a fresh checkout can install dependencies and run the desktop shell using documented commands. Boundary checks reject an intentionally forbidden import during local verification.
 
 ### M1 â€” Source model and directory acquisition
 
-- [ ] Define resource IDs, graph records, provenance, diagnostics, sessions, revisions, and ports.
-- [ ] Implement an in-memory test filesystem adapter and the Node filesystem adapter against the same contract cases.
-- [ ] Implement the directory analysis provider, ignore policy, and non-traversing symlink behavior.
-- [ ] Scan in a cancellable background worker and publish a valid immutable snapshot.
+- [x] Define resource IDs, graph records, provenance, diagnostics, sessions, revisions, and ports.
+- [x] Implement an in-memory test filesystem adapter and the Node filesystem adapter against the same contract cases.
+- [x] Implement the directory analysis provider, ignore policy, and non-traversing symlink behavior.
+- [x] Scan in a cancellable background worker and publish a valid immutable snapshot.
 - [ ] Wire native directory selection and basic scan status.
 
 Acceptance: empty, nested, excluded, inaccessible, Unicode, and symlink fixtures yield the expected nodes/edges/diagnostics. A directory scan produces no dangling edges. Opening a second root cannot publish results from the first.
