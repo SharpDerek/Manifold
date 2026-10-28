@@ -33,6 +33,19 @@ export function checkImport(file, specifier) {
   const normalized = file.replaceAll('\\', '/');
   const layer = normalized.split('/')[0];
   if (!allowed[layer]) return `Unknown source layer: ${file}`;
+  if (normalized.startsWith('renderer/layout/')) {
+    if (!specifier.startsWith('.'))
+      return `${file}: forbidden external dependency ${specifier} in layout`;
+    const target = path.posix.normalize(
+      path.posix.join(path.posix.dirname(normalized), specifier),
+    );
+    if (
+      !['renderer/layout/', 'core/', 'contracts/'].some((prefix) =>
+        target.startsWith(prefix),
+      )
+    )
+      return `${file}: forbidden layout dependency on ${specifier}`;
+  }
   if (specifier.startsWith('.')) {
     const target = path.posix.normalize(
       path.posix.join(path.posix.dirname(normalized), specifier),

@@ -65,6 +65,43 @@ async function verify(window) {
       ['', 'nested', 'nested/hello.txt'],
     );
     assert.equal(state.snapshot.edges.length, 2);
+    async function waitForUi(code) {
+      for (let attempt = 0; attempt < 100; attempt++) {
+        if (await evaluate(code)) return;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      throw new Error(`Desktop UI did not settle: ${code}`);
+    }
+    await waitForUi(
+      `document.querySelector('canvas[data-graph-ready="true"]') !== null && document.querySelector('.projection-status')?.textContent.includes('2 visible / 3 indexed')`,
+    );
+    await evaluate(
+      `document.querySelector('.entry-actions button[aria-expanded="false"]').click()`,
+    );
+    await waitForUi(
+      `document.querySelector('.projection-status')?.textContent.includes('3 visible / 3 indexed')`,
+    );
+    await evaluate(
+      `Array.from(document.querySelectorAll('.entry-button')).find(button => button.textContent.includes('nested/hello.txt')).click()`,
+    );
+    await waitForUi(
+      `document.querySelector('.selection-details')?.textContent.includes('nested/hello.txt')`,
+    );
+    await evaluate(
+      `Array.from(document.querySelectorAll('.explorer-toolbar button')).find(button => button.textContent.startsWith('Focus selection')).click()`,
+    );
+    await evaluate(
+      `Array.from(document.querySelectorAll('.explorer-toolbar button')).find(button => button.textContent.startsWith('Reset view')).click()`,
+    );
+    await evaluate(
+      `Array.from(document.querySelectorAll('tr')).find(row => row.querySelector('.entry-button')?.textContent.trim() === '■ nested').querySelector('button[aria-expanded]').click()`,
+    );
+    await waitForUi(
+      `document.querySelector('.projection-status')?.textContent.includes('2 visible / 3 indexed') && document.querySelector('.selection-details')?.textContent.includes('Select a node')`,
+    );
+    state = await command({ command: 'state', knownVersion: -1 });
+    assert.equal(state.snapshot.nodes.length, 3);
+    assert.equal(state.snapshot.edges.length, 2);
     const beforeCancel = state.sessionId;
     selected = null;
     state = await command({ command: 'open' });
@@ -81,7 +118,7 @@ async function verify(window) {
     assert.equal(state.snapshot, null);
     await assert.rejects(() => command({ command: 'open', path: fixture }));
     console.log(
-      'Desktop smoke passed: sandbox, preload IPC, scan, picker cancellation, policy refresh, close, payload rejection.',
+      'Desktop smoke passed: sandbox, preload IPC, scan, WebGL scene, layout worker, expand/collapse, selection/details, focus/reset commands, source immutability, picker cancellation, policy refresh, close, payload rejection.',
     );
   } catch (error) {
     console.error(error);

@@ -1,6 +1,7 @@
 ﻿import { useEffect, useRef, useState } from 'react';
 import type { ProjectState } from '../../core/graph';
 import type { ProjectRequest } from '../../contracts/project';
+import { Explorer } from './Explorer';
 
 export function App() {
   const [project, setProject] = useState<ProjectState | null>(null);
@@ -114,8 +115,7 @@ export function App() {
                     : `Scanned — ${nodes.length} entries, ${project.snapshot?.edges.length ?? 0} containment edges`}
             </p>
             <p className="hint">
-              This is an on-demand scan. External changes require Refresh. 3D
-              navigation is coming in the next milestone.
+              This is an on-demand scan. External changes require Refresh.
             </p>
             <form
               onSubmit={(event) => {
@@ -161,27 +161,10 @@ export function App() {
             )}
             {project.snapshot && (
               <>
-                <h2>Indexed entries</h2>
-                <p className="hint">
-                  Showing {Math.min(nodes.length, 200)} of {nodes.length}{' '}
-                  indexed entries. This display limit does not limit scanning.
-                </p>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Path</th>
-                      <th>Kind</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {nodes.slice(0, 200).map((node) => (
-                      <tr key={node.id}>
-                        <td>{node.entry.relativePath || '(root)'}</td>
-                        <td>{node.entry.kind}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <Explorer
+                  key={project.snapshot.sessionId}
+                  snapshot={project.snapshot}
+                />
                 {diagnostics.length > 0 && (
                   <section aria-label="Scan diagnostics">
                     <h2>Coverage diagnostics ({diagnostics.length})</h2>

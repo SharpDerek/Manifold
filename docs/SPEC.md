@@ -1,6 +1,6 @@
 ﻿# Manifold v0.1 implementation specification
 
-Status: M0 complete with user-confirmed startup/build; M1 acquisition implemented with desktop verification pending. Architecture: [DESIGN.md](DESIGN.md).
+Status: M0 and M1 complete with user confirmation; M2 implemented with graphics/desktop acceptance pending. Architecture: [DESIGN.md](DESIGN.md).
 
 ## 1. Release outcome
 
@@ -100,16 +100,16 @@ Acceptance: a fresh checkout can install dependencies and run the desktop shell 
 - [x] Implement an in-memory test filesystem adapter and the Node filesystem adapter against the same contract cases.
 - [x] Implement the directory analysis provider, ignore policy, and non-traversing symlink behavior.
 - [x] Scan in a cancellable background worker and publish a valid immutable snapshot.
-- [ ] Wire native directory selection and basic scan status.
+- [x] Wire native directory selection and basic scan status.
 
 Acceptance: empty, nested, excluded, inaccessible, Unicode, and symlink fixtures yield the expected nodes/edges/diagnostics. A directory scan produces no dangling edges. Opening a second root cannot publish results from the first.
 
 ### M2 â€” Useful 3D explorer
 
-- [ ] Implement deterministic hierarchy layout independently of the renderer.
+- [x] Implement deterministic hierarchy layout independently of the renderer.
 - [ ] Render source nodes/containment edges using React Three Fiber.
 - [ ] Add camera navigation, selection, focus, reset, legend, and details.
-- [ ] Add folder expansion/collapse and progressive visibility limits.
+- [x] Add folder expansion/collapse and progressive visibility limits.
 
 Acceptance: open Manifold's own directory and browse it; selection details match source paths; expanding/collapsing changes visibility without modifying the canonical graph. Layout output is repeatable for equivalent input and options.
 
