@@ -75,14 +75,39 @@ async function verify(window) {
     await waitForUi(
       `document.querySelector('canvas[data-graph-ready="true"]') !== null && document.querySelector('.projection-status')?.textContent.includes('2 visible / 3 indexed')`,
     );
+    const viewportLayout = await evaluate(`(() => {
+      const scene = document.querySelector('.graph-canvas').getBoundingClientRect();
+      const left = document.querySelector('.left-sidebar').getBoundingClientRect();
+      const right = document.querySelector('.right-sidebar').getBoundingClientRect();
+      return { fullWidth: Math.abs(scene.width - innerWidth) < 2,
+        fullHeight: Math.abs(scene.height - innerHeight) < 2,
+        panelsAtSides: left.left < 20 && right.right > innerWidth - 20 && left.right < right.left,
+        noPageScroll: document.documentElement.scrollHeight <= innerHeight };
+    })()`);
+    assert.deepEqual(viewportLayout, {
+      fullWidth: true,
+      fullHeight: true,
+      panelsAtSides: true,
+      noPageScroll: true,
+    });
     await evaluate(
-      `document.querySelector('.entry-actions button[aria-expanded="false"]').click()`,
+      `document.querySelector('[aria-label="Hide hierarchy"]').click(); document.querySelector('[aria-label="Hide inspector"]').click()`,
+    );
+    assert.equal(
+      await evaluate(`document.querySelectorAll('.sidebar').length`),
+      0,
+    );
+    await evaluate(
+      `document.querySelector('.left-toggle').click(); document.querySelector('.right-toggle').click()`,
+    );
+    await evaluate(
+      `document.querySelector('.tree-toggle[aria-expanded="false"]').click()`,
     );
     await waitForUi(
       `document.querySelector('.projection-status')?.textContent.includes('3 visible / 3 indexed')`,
     );
     await evaluate(
-      `Array.from(document.querySelectorAll('.entry-button')).find(button => button.textContent.includes('nested/hello.txt')).click()`,
+      `document.querySelector('[data-entry-path="nested/hello.txt"] .entry-button').click()`,
     );
     await waitForUi(
       `document.querySelector('.selection-details')?.textContent.includes('nested/hello.txt')`,
@@ -94,7 +119,7 @@ async function verify(window) {
       `Array.from(document.querySelectorAll('.explorer-toolbar button')).find(button => button.textContent.startsWith('Reset view')).click()`,
     );
     await evaluate(
-      `Array.from(document.querySelectorAll('tr')).find(row => row.querySelector('.entry-button')?.textContent.trim() === '■ nested').querySelector('button[aria-expanded]').click()`,
+      `document.querySelector('[data-entry-path="nested"] .tree-toggle').click()`,
     );
     await waitForUi(
       `document.querySelector('.projection-status')?.textContent.includes('2 visible / 3 indexed') && document.querySelector('.selection-details')?.textContent.includes('Select a node')`,

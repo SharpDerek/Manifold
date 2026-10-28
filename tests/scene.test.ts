@@ -149,6 +149,12 @@ it('mounts and changes selection in the real scene, including empty kind groups'
         .getState()
         .scene.children.some((child) => child instanceof THREE.InstancedMesh),
     ).toBe(true);
+    for (const item of projection.nodes) {
+      const label = store!
+        .getState()
+        .scene.getObjectByName(`label:${item.node.id}`);
+      expect(label?.position.toArray()).toEqual(item.position);
+    }
     await act(async () => {
       root.render(render('child'));
     });

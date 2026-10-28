@@ -1,4 +1,5 @@
-import type { GraphNode, GraphSnapshot } from '../../core/graph';
+﻿import type { GraphNode, GraphSnapshot } from '../../core/graph';
+import { layoutWeb } from './web';
 
 export type Position = [number, number, number];
 export type VisibleNode = {
@@ -57,46 +58,7 @@ export function projectHierarchy(
       hiddenCount: snapshot.nodes.length,
       limitReached: false,
     };
-  const traversal: { node: GraphNode; depth: number; z: number }[] = [];
-  const stack = [{ node: root, depth: 0, z: 0 }];
-  const seen = new Set<string>();
-  while (stack.length) {
-    const current = stack.pop()!;
-    if (seen.has(current.node.id)) continue;
-    seen.add(current.node.id);
-    traversal.push(current);
-    const list = children.get(current.node.id) ?? [];
-    for (let i = list.length - 1; i >= 0; i--)
-      stack.push({
-        node: list[i]!,
-        depth: current.depth + 1,
-        z: current.z * 0.5 + ((i % 5) - 2) * 1.5,
-      });
-  }
-  const positions = new Map<string, Position>();
-  let leaf = 0;
-  // Postorder places each parent over the midpoint of its children.
-  for (const item of [...traversal].reverse()) {
-    const list = children.get(item.node.id) ?? [];
-    const childPositions = list.flatMap((node) => {
-      const position = positions.get(node.id);
-      return position ? [position] : [];
-    });
-    let minX = Infinity;
-    let maxX = -Infinity;
-    for (const position of childPositions) {
-      minX = Math.min(minX, position[0]);
-      maxX = Math.max(maxX, position[0]);
-    }
-    const x = childPositions.length ? (minX + maxX) / 2 : -leaf++ * 3;
-    positions.set(item.node.id, [
-      x,
-      item.depth === 0 ? 0 : -item.depth * 6,
-      item.z,
-    ]);
-  }
-  const origin = positions.get(root.id)![0];
-  for (const position of positions.values()) position[0] -= origin;
+  const positions = layoutWeb(root, children);
   const visible: VisibleNode[] = [];
   const pending = [root];
   const emitted = new Set<string>();

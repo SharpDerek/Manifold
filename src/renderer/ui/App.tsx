@@ -69,11 +69,11 @@ export function App() {
   const nodes = project?.snapshot?.nodes ?? [];
   const diagnostics = project?.snapshot?.diagnostics ?? [];
   const open = project?.sessionId != null;
-  return (
-    <div className="shell">
-      <header>
-        <span className="brand">MANIFOLD</span>
-        <span className="badge">Directory explorer</span>
+  const projectPanel = (
+    <>
+      <div className="panel-section project-controls">
+        <p className="eyebrow">Workspace</p>
+        <h2 className="brand">MANIFOLD</h2>
         <button
           disabled={choosing}
           onClick={() => void command({ schemaVersion: 1, command: 'open' })}
@@ -81,118 +81,152 @@ export function App() {
           {choosing ? 'Choosing directory…' : 'Open directory'}
         </button>
         {open && (
-          <button
-            className="text-button"
-            onClick={() => void command({ schemaVersion: 1, command: 'close' })}
-          >
-            Close project
-          </button>
-        )}
-      </header>
-      <main className={open ? 'project' : ''}>
-        {!open ? (
           <>
-            <div className="mark" aria-hidden="true">
-              M
-            </div>
-            <p className="eyebrow">A new perspective on your project</p>
-            <h1>Start with a directory.</h1>
-            <p className="description">
-              Open a local directory to index its files, folders, and symbolic
-              links. Your source files remain unchanged.
+            <p className="root-path" title={project.rootPath ?? ''}>
+              {project.rootPath}
             </p>
-          </>
-        ) : (
-          <>
-            <h1>{project.rootPath}</h1>
-            <p role="status" aria-live="polite">
+            <p className="scan-status" role="status" aria-live="polite">
               {project.status === 'scanning'
-                ? `Scanning — ${project.discovered} entries discovered…`
+                ? `Scanning — ${project.discovered} entries…`
                 : project.status === 'failed'
                   ? 'Scan failed'
                   : project.status === 'incomplete'
                     ? `Incomplete scan — ${nodes.length} entries`
-                    : `Scanned — ${nodes.length} entries, ${project.snapshot?.edges.length ?? 0} containment edges`}
+                    : `Scanned — ${nodes.length} entries, ${project.snapshot?.edges.length ?? 0} edges`}
             </p>
-            <p className="hint">
-              This is an on-demand scan. External changes require Refresh.
-            </p>
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                const names = [
-                  ...new Set(
-                    excluded
-                      .split(',')
-                      .map((name) => name.trim())
-                      .filter(Boolean),
-                  ),
-                ];
-                void command({
-                  schemaVersion: 1,
-                  command: 'refresh',
-                  policy: { excludedDirectoryNames: names },
-                });
-              }}
+            <button
+              className="secondary-button"
+              onClick={() =>
+                void command({ schemaVersion: 1, command: 'close' })
+              }
             >
-              <label htmlFor="exclusions">
-                Excluded directory names (comma-separated)
-              </label>
-              <div className="policy-controls">
+              Close project
+            </button>
+            <details className="scan-settings">
+              <summary>Scan settings</summary>
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const names = [
+                    ...new Set(
+                      excluded
+                        .split(',')
+                        .map((name) => name.trim())
+                        .filter(Boolean),
+                    ),
+                  ];
+                  void command({
+                    schemaVersion: 1,
+                    command: 'refresh',
+                    policy: { excludedDirectoryNames: names },
+                  });
+                }}
+              >
+                <label htmlFor="exclusions">Excluded directory names</label>
                 <input
                   id="exclusions"
                   value={excluded}
                   onChange={(event) => setExcluded(event.target.value)}
                 />
+                <p className="hint">
+                  Comma-separated, exact names at any depth. Hidden entries are
+                  included; .gitignore rules are not read. Links are not
+                  traversed.
+                </p>
                 <button type="submit">
-                  {project.status === 'scanning' ? 'Restart scan' : 'Refresh'}
+                  {project.status === 'scanning'
+                    ? 'Restart scan'
+                    : 'Refresh with settings'}
                 </button>
-              </div>
-              <p className="hint">
-                Exact directory names at any depth. Hidden entries are included;
-                .gitignore rules are not read. Symbolic links and junctions are
-                shown without traversing their targets.
-              </p>
-            </form>
-            {project.error && (
-              <p role="alert" className="error">
-                {project.error}
-              </p>
-            )}
-            {project.snapshot && (
-              <>
-                <Explorer
-                  key={project.snapshot.sessionId}
-                  snapshot={project.snapshot}
-                />
-                {diagnostics.length > 0 && (
-                  <section aria-label="Scan diagnostics">
-                    <h2>Coverage diagnostics ({diagnostics.length})</h2>
-                    <p className="hint">
-                      Showing the first {Math.min(100, diagnostics.length)}{' '}
-                      diagnostics.
-                    </p>
-                    <ul>
-                      {diagnostics.slice(0, 100).map((item, index) => (
-                        <li key={index}>{item.message}</li>
-                      ))}
-                    </ul>
-                  </section>
-                )}
-              </>
-            )}
+              </form>
+            </details>
+            <button
+              className="secondary-button"
+              onClick={() =>
+                void command({
+                  schemaVersion: 1,
+                  command: 'refresh',
+                  policy: {
+                    excludedDirectoryNames: [
+                      ...project.policy.excludedDirectoryNames,
+                    ],
+                  },
+                })
+              }
+            >
+              {project.status === 'scanning' ? 'Restart scan' : 'Refresh'}
+            </button>
+            <p className="hint">External changes require Refresh.</p>
           </>
+        )}
+        {project?.error && (
+          <p role="alert" className="error">
+            {project.error}
+          </p>
         )}
         {error && (
           <p role="alert" className="error">
             {error}
           </p>
         )}
-      </main>
-      <footer>
+      </div>
+      {diagnostics.length > 0 && (
+        <details className="panel-section" aria-label="Scan diagnostics">
+          <summary>Coverage diagnostics ({diagnostics.length})</summary>
+          <p className="hint">
+            Showing the first {Math.min(100, diagnostics.length)}.
+          </p>
+          <ul>
+            {diagnostics.slice(0, 100).map((item, index) => (
+              <li key={index}>{item.message}</li>
+            ))}
+          </ul>
+        </details>
+      )}
+      <div className="panel-section connection-status">
         <span role="status">Application: {worker}</span>
         <span>Local workspace · v0.1</span>
-      </footer>
+      </div>
+    </>
+  );
+  return (
+    <div className="shell">
+      <main className="workspace">
+        {project?.snapshot ? (
+          <Explorer
+            key={project.snapshot.sessionId}
+            snapshot={project.snapshot}
+            projectPanel={projectPanel}
+          />
+        ) : (
+          <>
+            <div className="workspace-empty">
+              <div className="mark" aria-hidden="true">
+                M
+              </div>
+              <p className="eyebrow">A new perspective on your project</p>
+              <h1>
+                {open
+                  ? project.status === 'failed'
+                    ? 'Unable to scan directory.'
+                    : 'Discovering your directory…'
+                  : 'Start with a directory.'}
+              </h1>
+              <p className="description">
+                {open
+                  ? 'Scan progress and project controls are in the sidebar.'
+                  : 'Open a local directory to explore its files, folders, and connections in 3D.'}
+              </p>
+            </div>
+            <aside
+              className="sidebar right-sidebar empty-sidebar"
+              aria-label="Project controls"
+            >
+              {projectPanel}
+            </aside>
+          </>
+        )}
+      </main>
     </div>
   );
 }

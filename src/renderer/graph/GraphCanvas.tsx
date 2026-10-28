@@ -11,7 +11,9 @@ import {
   Object3D,
   PerspectiveCamera,
   Vector3,
+  Sprite,
 } from 'three';
+import { positionNodeLabel } from './labels';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type {
   SceneProjection,
@@ -26,6 +28,14 @@ type Props = {
   onFocus: (id: string) => void;
   focus: { id: string; nonce: number } | null;
   reset: number;
+};
+
+// Panel interactions must not reapply the initial camera configuration.
+const initialCamera = {
+  position: [15, 12, 30] as [number, number, number],
+  fov: 50,
+  near: 0.1,
+  far: 100000,
 };
 
 class SceneBoundary extends Component<
@@ -150,14 +160,24 @@ function Edges({ projection }: { projection: SceneProjection }) {
 }
 
 function Label({
+  nodeId,
+  kind,
   text,
   position,
   selected,
 }: {
+  nodeId: string;
+  kind: 'directory' | 'file' | 'symlink';
   text: string;
   position: Position;
   selected: boolean;
 }) {
+  const sprite = useRef<Sprite>(null);
+  const scratch = useMemo(() => new Vector3(), []);
+  const { size } = useThree();
+  const radius =
+    (kind === 'directory' ? 1.05 : kind === 'file' ? 0.55 : 0.75) *
+    (selected ? 1.4 : 1);
   const texture = useMemo(() => {
     const canvas = document.createElement('canvas');
     canvas.width = 512;
@@ -165,7 +185,7 @@ function Label({
     const context = canvas.getContext('2d')!;
     context.fillStyle = '#10151ee8';
     context.fillRect(0, 0, 512, 72);
-    context.font = '28px Segoe UI, sans-serif';
+    context.font = '40px Segoe UI, sans-serif';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.fillStyle = selected ? '#ffffff' : '#c2d5e7';
@@ -179,8 +199,21 @@ function Label({
   }, [texture]);
   return (
     <sprite
-      position={[position[0], position[1] + 1.3, position[2]]}
-      scale={[0.22, 0.031, 1]}
+      ref={sprite}
+      name={`label:${nodeId}`}
+      position={position}
+      frustumCulled={false}
+      onBeforeRender={(_renderer, _scene, camera) => {
+        if (sprite.current)
+          positionNodeLabel(
+            sprite.current,
+            camera,
+            size.width,
+            size.height,
+            radius,
+            scratch,
+          );
+      }}
       renderOrder={1}
     >
       <spriteMaterial
@@ -316,6 +349,8 @@ export function Scene(props: Props) {
       {labels.map((item) => (
         <Label
           key={item.node.id}
+          nodeId={item.node.id}
+          kind={item.node.entry.kind}
           text={item.node.entry.name}
           position={item.position}
           selected={item.node.id === props.selectedId}
@@ -332,7 +367,7 @@ export function GraphCanvas(props: Props) {
       <Canvas
         frameloop="demand"
         dpr={[1, 1.5]}
-        camera={{ position: [15, 12, 30], fov: 50, near: 0.1, far: 100000 }}
+        camera={initialCamera}
         onCreated={({ gl }) => {
           gl.domElement.tabIndex = 0;
           gl.domElement.dataset.graphReady = 'true';

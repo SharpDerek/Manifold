@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { freezeSnapshot } from '../src/core/graph';
 import type { GraphNode, GraphSnapshot } from '../src/core/graph';
 import { projectHierarchy } from '../src/renderer/layout/hierarchy';
+import { minimumNodeSpacing } from '../src/renderer/layout/web';
 
 const provenance = {
   provider: 'directory',
@@ -75,6 +76,65 @@ const ids = (projection: ReturnType<typeof projectHierarchy>) =>
   projection.nodes.map((item) => item.node.id);
 
 describe('directory projection and layout', () => {
+  it('spreads siblings across three dimensions with varied branch lengths', () => {
+    const files = Array.from({ length: 64 }, (_, i) =>
+      node(`file-${i}`, 'file'),
+    );
+    const source = graph(
+      [node('root', 'directory'), ...files],
+      files.map((file) => ['root', file.id]),
+    );
+    const result = projectHierarchy(source, new Set(['root']));
+    const positions = result.nodes.slice(1).map((item) => item.position);
+    for (const axis of [0, 1, 2]) {
+      const values = positions.map((position) => position[axis]!);
+      expect(Math.max(...values) - Math.min(...values)).toBeGreaterThan(20);
+      expect(
+        new Set(values.map((value) => value.toFixed(1))).size,
+      ).toBeGreaterThan(32);
+    }
+    expect(
+      new Set(positions.map((position) => Math.hypot(...position).toFixed(1)))
+        .size,
+    ).toBeGreaterThan(10);
+  });
+  it('keeps nodes separated across overlapping directory branches', () => {
+    const folders = Array.from({ length: 6 }, (_, i) =>
+      node(`folder-${i}`, 'directory'),
+    );
+    const nodes = [node('root', 'directory'), ...folders];
+    const edges: [string, string][] = folders.map((folder) => [
+      'root',
+      folder.id,
+    ]);
+    for (const folder of folders)
+      for (let i = 0; i < 20; i++) {
+        const file = node(`${folder.id}-file-${i}`, 'file');
+        nodes.push(file);
+        edges.push([folder.id, file.id]);
+      }
+    const source = graph(nodes, edges);
+    const result = projectHierarchy(
+      source,
+      new Set(['root', ...folders.map((folder) => folder.id)]),
+    );
+    expect(result.hiddenCount).toBe(0);
+    for (let i = 0; i < result.nodes.length; i++)
+      for (let j = i + 1; j < result.nodes.length; j++) {
+        const a = result.nodes[i]!.position;
+        const b = result.nodes[j]!.position;
+        expect(
+          Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]),
+        ).toBeGreaterThanOrEqual(minimumNodeSpacing - 1e-8);
+      }
+  });
+  it('uses source identity rather than fresh randomness or the session ID to place nodes', () => {
+    const source = fixture();
+    const expanded = new Set(source.nodes.map((item) => item.id));
+    expect(
+      projectHierarchy({ ...source, sessionId: 'reopened-session' }, expanded),
+    ).toEqual(projectHierarchy(source, expanded));
+  });
   it('initially exposes only the root and immediate children, directories first', () => {
     const result = projectHierarchy(fixture(), new Set(['root']));
     expect(ids(result)).toEqual(['root', 'empty', 'src', 'readme', 'link']);

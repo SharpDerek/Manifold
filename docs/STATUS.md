@@ -78,3 +78,30 @@ M0 and M1 are complete. The user confirmed the M1 desktop behavior after the can
 - Disabled late dependency discovery and explicitly prebundle all direct browser runtime entries, including Zod and react-dom. Load GraphCanvas eagerly with the application module graph; WebGL still mounts only after a source projection exists. This trades initial JS loading cost for stable renderer identity; no performance claim is made.
 - Added a live Vite middleware integration test that transforms application startup, scene, browser worker, and worker contracts in sequence. It verifies equal React DOM/Fiber/Zod dependency generation URLs, unchanged optimizer metadata, and no late-discovered dependencies. Middleware test does not launch a browser or require a GPU.
 - Full desktop confirmation remains pending. Stop the running development process and close its Electron window, then restart npm run start. If the fallback still occurs, its details retain the original stack.
+
+## M2 follow-up: viewport workspace and sidebars
+
+- User confirmed the 3D viewer works after the dependency-generation fix and requested a full-viewport scene with editor-style side panels.
+- Replaced the vertically stacked page, bounded canvas, header/footer, and bottom entries table with a canvas filling the entire window workspace. No document scrolling; the hierarchy and inspector scroll independently over the scene.
+- Left sidebar now presents compact indented hierarchy rows with folder disclosure arrows, selected-row highlighting, full-path tooltips, focus actions, and bounded pagination. Expansion still changes only the visible projection.
+- Right sidebar contains selection details, focus/reset/visibility controls, navigation help/legend, native directory actions, scan policy/refresh, diagnostics, and connection status. Both sidebars can be hidden/restored for an unobstructed view. Empty/scanning/error states retain project controls on the right.
+- Kept the initial Canvas camera configuration referentially stable so panel re-renders do not reapply the initial camera position.
+- Updated desktop smoke interactions for hierarchy rows and added full-viewport dimensions, sidebar placement, no-document-scroll, and hide/restore assertions. These assertions still require desktop execution; no visual run is claimed in this environment.
+- Automated source tests passed (59 tests), typecheck and lint passed. Production bundles compile; packaging still fails during an external fetch. Final formatting/aggregate checks are recorded in the session response. Initial formatting check exposed pre-existing checkout line-ending differences, which the documented formatter normalizes.
+- Next: verify the new layout at normal and minimum window sizes, hide/restore both panels, select and expand folders, and inspect/refresh the current project. M2 graphics interaction acceptance remains separate from compilation and the user's earlier renderer-startup confirmation.
+
+## M2 follow-up: organic 3D file-web layout
+
+- User requested more random-looking node spread and less tight clustering. Replaced the straight leaf-span/depth-row layout with seeded spherical branching in all three axes, per-directory rotation, and varied parent/child distances. Higher fan-out increases the branch radius.
+- Coordinates still derive from canonical source identity and the full graph. Reopening the same source, expanding/collapsing, and changing display caps retain repeatable coordinates; no Math.random or ongoing physics simulation is used. Source nodes, containment edges, visibility order, selection, and IPC are unchanged.
+- Added global spatial-hash collision checks with a seven-scene-unit minimum center spacing, bounded candidate retries, and a guaranteed-clear bounding-sphere fallback. This avoids an unbounded all-pairs force simulation and keeps layout in the existing cancellable worker.
+- Passed npm run check: typecheck, lint/import boundaries, 2 boundary tests plus 60 Vitest tests (62 total), formatting. Three new cases verify volumetric spread with varied link lengths, minimum separation across directory branches, and stable placement across sessions. Existing collapse/order/immutability/large-tree/worker tests remain passing.
+- Actual desktop appearance and screen-space label overlap have not been verified here. Next: refresh the project or reopen it to recompute the layout, then use Reset view to fit the new web. Tune based on desktop feedback; performance budgets remain unmeasured.
+
+## M2 follow-up: labels detached from nodes
+
+- User reported titles appearing far from their nodes after the volumetric layout change. Replaced the fixed +1.3 world-Y label offset with an exact node-position anchor and a camera-facing pixel offset.
+- Labels now use a stable 180-by-28 CSS-pixel billboard size. Before drawing, their anchor center is offset by the projected node bounding radius plus a six-pixel gap, accounting for node kind and selection scale. Orbiting, zooming, and resizing update this directly in Three.js without per-frame React state changes. Text resolution was adjusted for the new pixel size.
+- Added a projection regression covering multiple camera angles, zoom levels, and viewport sizes; it verifies the horizontal anchor, pixel gap, and label width/height against Three's sprite shader projection. Extended the actual scene test to verify every label uses its source node's exact position.
+- Passed npm run check: typecheck, lint/import boundaries, 2 boundary tests plus 61 Vitest tests (63 total), formatting. These are GPU-independent projection/scene tests; desktop appearance still needs confirmation.
+- Source graph, layout coordinates, camera controls, and the label-count cap are unchanged. Next: verify labels while orbiting and focusing nodes in the desktop viewer; screen-space overlap among different labels remains possible in crowded views.

@@ -107,7 +107,7 @@ Acceptance: empty, nested, excluded, inaccessible, Unicode, and symlink fixtures
 ### M2 â€” Useful 3D explorer
 
 - [x] Implement deterministic hierarchy layout independently of the renderer.
-- [ ] Render source nodes/containment edges using React Three Fiber.
+- [x] Render source nodes/containment edges using React Three Fiber.
 - [ ] Add camera navigation, selection, focus, reset, legend, and details.
 - [x] Add folder expansion/collapse and progressive visibility limits.
 
