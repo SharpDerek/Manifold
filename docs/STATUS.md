@@ -4,58 +4,77 @@ Last updated: 2026-10-27.
 
 ## Current state
 
-M0 is complete: the user confirmed desktop start and build, initialized Git, committed the baseline (`797e09c`), and opened branch `m1`. Forge 8.0.1 resolved the earlier transitive dependency issues; the last user-run npm audit log returned an empty advisory report.
+M0 and M1 are complete. The user confirmed the M1 desktop behavior after the canonical-URL IPC sender fix, committed the work, and opened clean branch `m2`.
 
-M1 directory acquisition is implemented with automated source/worker coverage. The native picker and updated desktop UI still need manual verification. Current milestone: **M1 — Source model and directory acquisition**.
+**M2 — Useful 3D explorer** is implemented; desktop graphics acceptance is pending. No M3 live synchronization work has been started.
 
-## Delivered behavior
+## Delivered in M2
 
-- Framework-independent resource/graph records, metadata revisions, provider provenance, diagnostics, scan policy, session state, immutable graph publication, and graph integrity validation.
-- Streaming Node filesystem adapter and controllable case-sensitive in-memory adapter behind the same port. Directory discovery is sequential (concurrency bound: one filesystem operation), cancellable between observations, and runs in the worker. Replacement requests retain only the latest queued scan, and wait for canceled OS work to finish before starting the replacement.
-- Built-in directory provider creates deterministic nodes and containment edges. Root nodes are retained even for empty directories; missing/invalid roots fail visibly. Read failures and broken links produce incomplete coverage diagnostics.
-- Default exact directory-name exclusions at every depth: .git, node_modules, dist, build, coverage. Hidden entries otherwise included; .gitignore is not interpreted. Project exclusions can be edited and applied with Refresh; settings are session-local.
-- Symbolic links/junctions are displayed without enumerating targets, including loops and outside-root targets. Symbolic-link roots are rejected; canonical resource keys and path rules stay in the Node adapter.
-- Runtime-validated project IPC exposes native Open Directory, state polling, policy refresh, and close. Renderer cannot submit paths or perform arbitrary filesystem operations. Sender validation, sandbox, context isolation, and disabled Node integration remain enabled.
-- Session replacement/close cancels previous work; both worker and application reject obsolete results. Main-process state versions prevent stale poll/command responses from replacing newer renderer state. Canceled native picking preserves the current project.
-- Basic UI displays scan progress, graph counts, diagnostics, and the first 200 indexed entries. The display cap does not cap indexing. Status says Scanned rather than Current: watching and reconciliation are M3 work.
+- Deterministic iterative hierarchy layout, independent of Three.js/React/platform APIs, enforced by import checks. Stable coordinates across collapse/expand/display caps, including equivalent snapshots with reordered arrays.
+- Cancellable browser-worker projection/layout with obsolete-result rejection. Canonical graph records remain untouched. Initial visibility is root and immediate children; folders expand progressively.
+- Three.js 0.186.1 + React Three Fiber 9.8.2 and @types/three 0.186.0 installed by the user with exact pins and generated lockfile.
+- On-demand 3D rendering: instanced box/sphere/diamond nodes, batched containment edges, shape legend, selection highlight, and up to 40 local text labels including the selection.
+- Orbit/pan/zoom, focus selection, reset-to-visible-graph, mouse/touch controls, canvas keyboard shortcuts, and documented UI help.
+- Selection details show root-relative path, kind, file size, modification time, and immediate-child count. Selection clears when hidden/removed from the visible projection. A paginated directory list supplies keyboard-accessible selection/expansion/focus alternatives.
+- Default 500 visible nodes, adjustable to 1,000/2,000; explicit indexed/visible/hidden counts and truncation messaging. Display caps do not truncate indexing.
+- Extended desktop smoke script to exercise actual WebGL initialization, browser layout worker, expansion/collapse, selection/details, focus/reset commands, and preservation of source graph facts.
 
-## Verification
+## Verification and evidence
 
-- Passed during implementation: strict TypeScript; boundary checks and lint; 2 boundary tests plus 42 Vitest tests, including both adapter contract suites and a real bundled-worker integration test. Final `npm run check` passed: typecheck, lint/boundaries, all 44 tests, and formatting. `git diff --check` also passed (Git emitted only line-ending conversion notices).
-- Cases cover empty/nested/Unicode/hidden entries, default/custom exclusions, cancellation before/during enumeration, missing roots, injected EACCES enumeration failures, invalid provider endpoints, immutable publication, stable IDs, case-sensitive keys, source replacement by a junction, late session results, refresh/close/failure recovery, and strict IPC payload validation.
-- Real Windows junction fixtures cover outside targets, loops, and dangling links. Permission failures use injected filesystem errors (portable, deterministic); a real Windows ACL-denied source directory has not been exercised.
-- `npm run build`: main, sandbox preload, worker, and renderer production bundles compile. Final packaging fails with `fetch failed` in the restricted agent environment. The user's successful build confirmation predates M1.
-- Added `npm run smoke:desktop` (requires production bundles). It exercises the real hidden desktop composition root, preload, sandbox settings, project IPC, scans, canceled picker behavior, policy refresh, close, and payload rejection using disposable fixtures and a mocked native dialog. Attempt blocked before app load by Electron's Windows install-directory sandbox ACL check; no sandbox or ACL settings were changed.
-- Manual M1 checks still needed: real native picker open/cancel, visible progress and diagnostics, refresh/exclusions, closing/switching during a scan, and packaged startup/worker paths. HMR and visual interaction have not been verified in this session.
-
-## Milestone tracker
-
-| Milestone                 | Status                                    | Evidence                                                                            |
-| ------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------- |
-| M0: Skeleton              | Complete                                  | User-confirmed start/build; committed baseline; automated checks pass               |
-| M1: Directory acquisition | Implemented; desktop verification pending | Adapter, graph, lifecycle, IPC and bundled-worker tests; production bundles compile |
-| M2: 3D explorer           | Not started                               | Next implementation milestone after M1 desktop verification                         |
-| M3: Synchronization       | Not started                               | No live watching/reconciliation yet                                                 |
-| M4: Find and inspect      | Not started                               | No search, previews, or reveal action yet                                           |
-| M5: Distributable build   | Not started                               | No recorded benchmarks or clean-machine release verification                        |
+- Passed: strict TypeScript, lint/import boundaries, 2 Node boundary tests plus 57 Vitest tests (59 total), and formatting via `npm run check`. Final aggregate outcome is confirmed in the session response.
+- Ten pure-layout tests cover initial visibility, progressive expansion, collapse without source mutation, stable coordinates, reordered-equivalent inputs, visible edge integrity, honest caps, empty root, unknown expansion IDs, links, and deep/wide 12,001-node fixtures. These fixtures establish structural robustness, not a performance benchmark.
+- A real bundled browser-layout worker test runs off-thread through a Node self/onmessage bridge, with valid projection and invalid-request cases. It needs no Electron or GPU. Existing scan-worker, filesystem, lifecycle, IPC, and URL-sender regressions remain passing.
+- `npm run build`: production main, preload, scan worker, renderer, lazy 3D module, and browser layout worker compile. Final packaging still fails at an external fetch in this agent environment.
+- Desktop smoke was attempted with the real Electron runtime. Windows aborts before app load because the sandbox token cannot read the Electron install directory under this environment's ACL. Renderer sandbox/security settings and ACLs were preserved. Graphics tests did not execute; no visual correctness or frame-time claim is made.
+- User-confirmed M1 verification is separate from the unverified M2 graphics changes. No real manual browse of Manifold's own directory, GPU interaction, HMR, WebGL fallback, or packaged M2 startup has been verified here.
 
 ## Next concrete task
 
-1. In a normal Windows terminal run `npm run build`, then `npm run smoke:desktop`, and `npm run start`.
-2. Verify the real picker and UI cases above. Fix any desktop integration defects and finish M1's final acceptance checkbox.
-3. Begin M2 with deterministic hierarchy layout and 3D projection, keeping source graph facts separate from presentation.
+1. From the normal Windows terminal run `npm run build`, `npm run smoke:desktop`, and `npm run start`.
+2. Open Manifold's own directory. Verify orbit/pan/zoom, node/list selection and matching details, expansion/collapse, focus/reset, keyboard controls, and explicit hidden-content counts. Test an empty directory and a directory large enough to hit the display cap.
+3. Fix any graphics/integration defects and complete M2's rendering/navigation acceptance checkboxes. Then begin M3 watching plus reconciliation; preserve the on-demand Scanned status until that consistency implementation is verified.
 
-## Limitations and decisions
+## Milestones
 
-- Each acquisition publishes one full immutable graph at revision 1 of a fresh session. Refresh/policy changes start a new session; incremental revisions and live reconciliation are deferred to M3.
-- Scans are observations of a changing source, not atomic disk snapshots. Adapter checks detect directory/link replacement before enumeration, but portable path-based filesystem APIs cannot eliminate every adversarial replacement race between checks and OS calls. No external change consistency claim is made yet.
-- Metadata revisions are observation fingerprints, not content hashes. File content is not read during acquisition.
-- No 3D renderer, semantic analysis, source previews, durable cache, measured performance figures, code signing, or public distribution in this milestone.
-- Initial M0 scaffolding and dependency recovery history is preserved in Git. Architecture rationale lives in DESIGN.md; initial advisory details remain historical in DEPENDENCIES.md.
+| Milestone                    | Status                                     | Evidence                                                        |
+| ---------------------------- | ------------------------------------------ | --------------------------------------------------------------- |
+| M0: Skeleton                 | Complete                                   | User-confirmed startup/build, committed baseline, checks        |
+| M1: Directory acquisition    | Complete                                   | Automated contracts/worker tests plus user desktop confirmation |
+| M2: 3D explorer              | Implemented; graphics verification pending | Layout/projection and worker tests; production compilation      |
+| M3: Live synchronization     | Not started                                | External changes still require Refresh                          |
+| M4: Find and inspect         | Not started                                | No search/filter/preview/reveal action yet                      |
+| M5: Performance/distribution | Not started                                | No recorded benchmarks or clean-machine release verification    |
 
-## M1 follow-up: development IPC sender rejection
+## Known limitations
 
-- User reported Open Directory failing with Untrusted IPC sender. Inspected Forge 8's pluginExposeRenderer implementation: it injects an HTTP origin without a trailing slash, while Chromium's sender frame URL includes the slash. The raw string comparison rejected the legitimate renderer.
-- Added full canonical URL comparison with URL.href. Retained owning-webContents and exact main-frame identity checks. Different host, port, scheme, document path, query, fragment, credentials, malformed URLs, and different production files remain rejected.
-- Passed: npm run check (typecheck, lint/boundaries, 2 boundary tests plus 42 Vitest tests, formatting). Fourteen new URL regression cases include the actual Forge/Chromium slash mismatch and rejection cases.
-- Desktop interaction remains subject to the previously recorded sandbox ACL limitation. Next: fully restart npm run start to load the updated Electron main process and verify Open Directory, then finish M1 desktop checks.
+- No live watching, source reconciliation, content previews, or search. Successful acquisition still means Scanned, not Current.
+- Canonical coordinates preserve gaps for collapsed branches. Very broad source levels may exceed even the 2,000-node cap; hidden entries are reported but cannot all be revealed simultaneously. Full search/reveal is deferred to M4.
+- A fresh scan creates a new session and resets presentation state. No durable layout/camera state is stored.
+- The 3D renderer requires WebGL2. List/details remain available on rendering failure, but that fallback still needs desktop verification. Label overlap and scene performance are unmeasured; M5 budgets remain provisional.
+- M1 symlink, metadata-fingerprint, and source-observation limitations remain: no deliberate target traversal, no content hashing, and no atomic filesystem snapshot guarantee.
+- No signing/public distribution setup. No dependencies were force-overridden or warning-suppressed during M2.
+
+## M2 follow-up: invalid hook call on directory opening/selection
+
+- User reported the scene fallback and supplied React's Invalid hook call error. npm ls confirms one React 19.2.0 installation, deduped through React DOM and Fiber, with compatible declared peers.
+- Added Vite renderer resolve.dedupe for React, React DOM, and Three.js, plus explicit dependency optimization of the lazy 3D renderer and its React entry points. A fresh optimized-bundle test verifies app React, React DOM client, and Fiber all import the same shared React module before scene loading. A stale/duplicated development module is the likely cause; the exact failing browser stack has not been captured.
+- Added actual scene mount/selection tests using Fiber's real reconciler with a graphics-driver stub, plus React DOM server coverage of the Canvas bridge. These pass without a GPU, including StrictMode and empty node-kind groups. They do not establish real browser/WebGL behavior. Node's test-only Fiber CommonJS import emits a Three.js CJS deprecation warning; production uses the ESM renderer.
+- Scene fallback now exposes the underlying error in expandable details instead of hiding it behind a generic message.
+- Next: stop the existing development process and close its Electron window, then run npm run start again to load the new optimizer configuration and discard old React instances. Verify directory opening and graph selection. M2 graphics acceptance remains pending.
+
+## M2 follow-up: null useMemo after initial bundler hardening
+
+- User still reports Cannot read properties of null (reading useMemo). Supplied defaultOnCaughtError frame is React DOM's error handler, not the originating call site. Exact browser cause is still unconfirmed; do not describe the issue as fixed based on Node tests alone.
+- Expanded the scene fallback to show error.stack (not just error.message) and added Reload view so the existing main-process project can be loaded into a fresh renderer.
+- Isolated the renderer optimizer cache in .cache/vite-renderer and canonicalized symlink resolution, overriding Forge's preserveSymlinks default. Retained explicit React deduplication and eager dependency optimization. New config requires a complete dev-process restart.
+- Passed npm run check: all 58 tests, typecheck, import boundaries/lint, formatting. No new GPU verification claim. Started then stopped a separate reproduction Vite server; its temporary fixture is ignored under .cache.
+- Automatic execution policy rejected launching a separate headless Chrome reproduction because sandbox approvals are disabled. No browser execution or graphics verification occurred through that route.
+- Next: restart npm run start, open the directory, and if it fails copy the full Rendering error details block now containing the original stack. Continue from the first non-React-error-handler frame rather than making another unverified dependency change.
+
+## M2 follow-up: mixed development bundle generations identified
+
+- User supplied the originating stack: CanvasImpl uses Fiber/React chunks at v=88960f80 while React DOM client is still running v=295453b1. Failure is at CanvasImpl's first React.useMemo, before application scene hooks. This identifies mixed runtime generations rather than a broken scene selection hook.
+- Earlier prebundle identity tests checked only one completed optimization result; they did not cover later worker dependency discovery. The browser layout worker imports Zod after directory opening, and Zod/react-dom were not explicit optimizer entries.
+- Disabled late dependency discovery and explicitly prebundle all direct browser runtime entries, including Zod and react-dom. Load GraphCanvas eagerly with the application module graph; WebGL still mounts only after a source projection exists. This trades initial JS loading cost for stable renderer identity; no performance claim is made.
+- Added a live Vite middleware integration test that transforms application startup, scene, browser worker, and worker contracts in sequence. It verifies equal React DOM/Fiber/Zod dependency generation URLs, unchanged optimizer metadata, and no late-discovered dependencies. Middleware test does not launch a browser or require a GPU.
+- Full desktop confirmation remains pending. Stop the running development process and close its Electron window, then restart npm run start. If the fallback still occurs, its details retain the original stack.

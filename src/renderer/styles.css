@@ -156,3 +156,144 @@ section li {
 button {
   cursor: pointer;
 }
+.explorer {
+  margin-top: 24px;
+}
+.explorer-toolbar,
+.legend,
+.list-pagination {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.explorer-toolbar button,
+.list-pagination button {
+  padding: 8px 12px;
+}
+.explorer-toolbar label {
+  margin-left: auto;
+  color: #b8c9db;
+}
+select {
+  font: inherit;
+  color: #e8edf5;
+  background: #172536;
+  border: 1px solid #6f98b5;
+  border-radius: 4px;
+  padding: 8px;
+  margin-left: 8px;
+}
+.projection-status {
+  color: #b7cde3;
+  line-height: 1.6;
+}
+.explorer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 18px;
+}
+.scene-panel {
+  min-width: 0;
+}
+.graph-canvas {
+  height: clamp(380px, 56vh, 720px);
+  background: #0d1420;
+  border: 1px solid #334961;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+.graph-canvas > p {
+  padding: 24px;
+}
+.graph-canvas canvas {
+  touch-action: none;
+}
+.graph-canvas canvas:focus-visible {
+  outline: 2px solid #a9d8f5;
+  outline-offset: -3px;
+}
+.legend {
+  font-size: 12px;
+  color: #b9cee0;
+  line-height: 1.8;
+}
+.controls-help {
+  font-size: 13px;
+  color: #b9cee0;
+  line-height: 1.7;
+}
+summary {
+  cursor: pointer;
+}
+.selection-details {
+  padding: 16px;
+  background: #142132;
+  border: 1px solid #334961;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.selection-details h2 {
+  margin-top: 0;
+}
+.selection-details h3 {
+  font-size: 16px;
+}
+dt {
+  font-size: 12px;
+  color: #9eb4ca;
+  margin-top: 14px;
+}
+dd {
+  margin: 4px 0 0;
+  font-size: 14px;
+}
+.directory-list {
+  margin-top: 24px;
+}
+.list-pagination {
+  margin: 12px 0;
+  font-size: 13px;
+}
+.selected-row {
+  background: #9fd1ee16;
+}
+.entry-button {
+  background: transparent;
+  border: none;
+  color: #c8deef;
+  padding: 4px 0;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.entry-button[aria-pressed='true'] {
+  color: #ffffff;
+  font-weight: 600;
+}
+.entry-actions {
+  min-width: 150px;
+}
+.entry-actions button {
+  margin-right: 10px;
+}
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #c1e7ff;
+  outline-offset: 3px;
+}
+@media (max-width: 1000px) {
+  .explorer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .selection-details dl {
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr);
+    gap: 8px;
+  }
+  .selection-details dt,
+  .selection-details dd {
+    margin: 0;
+  }
+}

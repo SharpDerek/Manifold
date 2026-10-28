@@ -13,12 +13,19 @@ test('core, application and renderer reject platform/framework dependencies', ()
     ['renderer/ui/App.tsx', '../../main/main'],
     ['ports/files.ts', 'node:path'],
     ['core/model.ts', '../../outside'],
+    ['renderer/layout/hierarchy.ts', 'three'],
+    ['renderer/layout/hierarchy.ts', 'react'],
+    ['renderer/layout/hierarchy.ts', '../graph/GraphCanvas'],
   ])
     assert.ok(
       checkImport(file, dependency),
       `${file} must reject ${dependency}`,
     );
   assert.equal(checkImport('application/project.ts', '../ports/files'), null);
+  assert.equal(
+    checkImport('renderer/layout/hierarchy.ts', '../../core/graph'),
+    null,
+  );
   assert.equal(
     checkImport('renderer/ui/App.tsx', '../../contracts/runtime'),
     null,
