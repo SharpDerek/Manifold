@@ -15,7 +15,7 @@ Before implementing a milestone, read the linked project documents. Update the s
 
 ## Development
 
-Use Node.js 24 LTS (or Node 22.12+) and npm 11.21.1. Dependencies and a lockfile are present; security remediation and desktop verification are in progress. See [dependency findings](docs/DEPENDENCIES.md) and STATUS.md for verification limits.
+Use Node.js 24 LTS (or Node 22.12+) and npm 11.21.1. Dependencies and a committed lockfile are present. M0 startup/build is verified; M1 directory acquisition is implemented with desktop verification pending. See [dependency findings](docs/DEPENDENCIES.md) and STATUS.md for verification limits.
 
 ```powershell
 npm install
@@ -35,7 +35,9 @@ Use `npm ci` for reproducible installs from `package-lock.json`; use `npm instal
 | `npm run build`     | Compile and package application into `out/`         |
 | `npm run make`      | Create a Windows ZIP distribution in `out/make/`    |
 
-The shell shows worker connection status. Open Directory is disabled until M1 implements source acquisition; no sample graph is presented as real source data. Three.js and scanning dependencies will be introduced when their milestones need them.
+Use Open Directory to scan a local directory. The UI shows scan progress, indexed entry/edge counts, coverage diagnostics, and a limited entry table. Close Project cancels work; opening another directory replaces the session only after a successful picker selection. Refresh rescans with the editable excluded directory names. Symbolic links/junctions are displayed without traversing targets. Scans do not read file contents or modify source files. External changes require Refresh; live updates and 3D navigation are later milestones.
+
+After production bundle compilation, `npm run smoke:desktop` checks the real desktop preload/IPC and worker using a hidden window, disposable fixtures, and a mocked native dialog. It does not verify the real native picker or visual interaction. It retains the renderer sandbox; Windows sandbox ACL restrictions can prevent it from starting in the agent environment.
 
 Without installed dependencies, architectural checks can still run:
 
